@@ -95,6 +95,7 @@
             border: 1px solid #334155;
             color: var(--text-dim);
             font-size: 13px;
+            cursor: pointer;
         }
 
         .cat-btn.active {
@@ -139,6 +140,7 @@
             background: #0f172a;
             color: white;
             font-size: 12px;
+            cursor: pointer;
         }
 
         .quick-grid button.active {
@@ -180,9 +182,10 @@
             color: white;
             font-size: 16px;
             font-weight: 700;
+            cursor: pointer;
         }
 
-        /* Окно после заказа */
+        /* Окно подтверждения заказа */
         #successOverlay {
             display: none;
             position: fixed;
@@ -191,20 +194,34 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            padding: 30px;
+            padding: 20px;
             box-sizing: border-box;
             text-align: center;
         }
 
         .success-card {
             background: var(--card-bg);
-            padding: 30px;
+            padding: 25px;
             border-radius: 30px;
             border: 1px solid var(--accent-color);
+            width: 100%;
+            max-width: 350px;
         }
 
-        .success-card h2 { color: var(--accent-color); margin-top: 0; }
-        .success-card p { line-height: 1.5; color: var(--text-main); }
+        .success-card h2 { color: var(--accent-color); margin-top: 0; font-size: 20px; }
+        
+        #orderSummary {
+            text-align: left;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 15px 0;
+            max-height: 180px;
+            overflow-y: auto;
+            font-size: 14px;
+            color: #cbd5e1;
+            border: 1px solid #1e293b;
+        }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -229,15 +246,19 @@
         <div style="height: 180px;"></div> 
         <div class="order-footer">
             <input type="text" id="contact" class="order-input" placeholder="Адрес или комментарий">
-            <button class="confirm-btn" onclick="sendOrder()">ОТПРАВИТЬ ЗАКАЗ</button>
+            <button class="confirm-btn" onclick="showPreview()">ОФОРМИТЬ ЗАКАЗ</button>
         </div>
     </div>
 
     <div id="successOverlay">
         <div class="success-card">
-            <h2>Заказ отправлен!</h2>
-            <p>Ваша заявка передана оператору.<br><br><b>Ожидайте SMS:</b> мы пришлем итоговую стоимость и подтвердим доставку.</p>
-            <button class="confirm-btn" style="margin-top:20px" onclick="location.reload()">ОК</button>
+            <h2>Ваш заказ</h2>
+            <div id="orderSummary"></div>
+            <p style="font-size: 13px; color: var(--text-dim); line-height: 1.4;">
+                После подтверждения откроется окно SMS. Отправьте его, и <b>оператор ответит вам сообщением с ценой</b> для подтверждения.
+            </p>
+            <button class="confirm-btn" onclick="confirmAndSend()">ВСЁ ВЕРНО, ОТПРАВИТЬ</button>
+            <button onclick="closeModal()" style="background: none; border: none; color: var(--text-dim); margin-top: 15px; font-size: 13px; text-decoration: underline; cursor: pointer;">Изменить заказ</button>
         </div>
     </div>
 
@@ -291,6 +312,7 @@ const menuData = {
 };
 
 let currentOrder = {};
+let finalSmsText = "";
 
 function openCatalog() {
     document.getElementById("startScreen").style.display = "none";
@@ -350,33 +372,42 @@ function updateQty(id, name, qty, btn) {
     } else {
         currentOrder[id] = { name, qty };
     }
-    
     const parentGrid = btn.parentElement;
     parentGrid.querySelectorAll('button').forEach(b => b.classList.remove('active'));
     if (qty > 0) btn.classList.add('active');
 }
 
-function sendOrder() {
+function showPreview() {
     let text = "🛒 ЗАКАЗ ALKOMIR\n\n";
+    let summaryHtml = "";
     let hasItems = false;
     
     for (let id in currentOrder) {
-        text += `• ${currentOrder[id].name}: ${currentOrder[id].qty} шт\n`;
+        let line = `• ${currentOrder[id].name}: ${currentOrder[id].qty} шт`;
+        text += line + "\n";
+        summaryHtml += `<div style="margin-bottom:5px;">${line}</div>`;
         hasItems = true;
     }
 
-    if (!hasItems) return alert("Выберите товары");
+    if (!hasItems) return alert("Выберите хотя бы один товар");
 
     let contact = document.getElementById("contact").value;
-    text += `\n📞 Контакт: ${contact}`;
+    if (!contact) return alert("Укажите адрес или комментарий");
     
-    // Открываем SMS
-    window.location.href = `sms:99365858463?body=${encodeURIComponent(text)}`;
+    text += `\n📞 Контакт: ${contact}`;
+    finalSmsText = text;
 
-    // Показываем окно об успехе через небольшую паузу
-    setTimeout(() => {
-        document.getElementById("successOverlay").style.display = "flex";
-    }, 1000);
+    document.getElementById("orderSummary").innerHTML = summaryHtml + `<div style="margin-top:10px; color:var(--accent-color); border-top: 1px solid #1e293b; pt:10px;">📍 ${contact}</div>`;
+    document.getElementById("successOverlay").style.display = "flex";
+}
+
+function confirmAndSend() {
+    window.location.href = `sms:99365858463?body=${encodeURIComponent(finalSmsText)}`;
+    setTimeout(closeModal, 1000);
+}
+
+function closeModal() {
+    document.getElementById("successOverlay").style.display = "none";
 }
 </script>
 
