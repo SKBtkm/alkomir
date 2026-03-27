@@ -73,9 +73,10 @@
         /* ===== КАТАЛОГ ===== */
         #catalog { display: none; }
 
+        /* ФИКСИРОВАННОЕ МЕНЮ КАТЕГОРИЙ */
         .category-nav {
             position: sticky;
-            top: 0;
+            top: 0; /* Прилипает к верху */
             background: var(--bg-color);
             z-index: 100;
             display: flex;
@@ -148,7 +149,6 @@
             font-weight: bold;
         }
 
-        /* Фиксированная кнопка заказа */
         .order-footer {
             position: fixed;
             bottom: 0;
@@ -185,7 +185,6 @@
             cursor: pointer;
         }
 
-        /* Окно подтверждения заказа */
         #successOverlay {
             display: none;
             position: fixed;
@@ -339,6 +338,9 @@ function renderCategories() {
 function showCategory(catName) {
     const grid = document.getElementById("productsGrid");
     grid.innerHTML = "";
+    
+    // ПРИ ПЕРЕХОДЕ СКРОЛЛИМ ВВЕРХ
+    window.scrollTo(0, 0);
     
     menuData[catName].forEach(item => {
         const card = document.createElement("div");
