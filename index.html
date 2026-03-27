@@ -9,7 +9,7 @@
         :root {
             --bg-color: #050a0f;
             --card-bg: #111a21;
-            --accent-color: #ff8c00; /* Оранжевый Alkomir */
+            --accent-color: #ff8c00; 
             --text-main: #ffffff;
             --text-dim: #94a3b8;
             --btn-bg: #1e293b;
@@ -73,7 +73,6 @@
         /* ===== КАТАЛОГ ===== */
         #catalog { display: none; }
 
-        /* Шапка с категориями */
         .category-nav {
             position: sticky;
             top: 0;
@@ -96,7 +95,6 @@
             border: 1px solid #334155;
             color: var(--text-dim);
             font-size: 13px;
-            cursor: pointer;
         }
 
         .cat-btn.active {
@@ -105,7 +103,6 @@
             border-color: var(--accent-color);
         }
 
-        /* Список товаров */
         .products-grid { padding: 15px; }
 
         .card {
@@ -114,6 +111,7 @@
             margin-bottom: 20px;
             border: 1px solid #1e293b;
             overflow: hidden;
+            animation: fadeIn 0.5s ease;
         }
 
         .card-image {
@@ -121,13 +119,12 @@
             height: 180px;
             background-size: cover;
             background-position: center;
-            background-image: url('item_photo.jpg'); /* Одна картинка для всех по дефолту */
+            background-image: url('item_photo.jpg'); 
         }
 
         .card-content { padding: 15px; }
 
-        .name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
-        .price { color: var(--accent-color); font-weight: 700; margin-bottom: 15px; }
+        .name { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
 
         .quick-grid {
             display: grid;
@@ -156,7 +153,7 @@
             width: 100%;
             max-width: 420px;
             background: rgba(5, 10, 15, 0.95);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
             padding: 15px;
             box-sizing: border-box;
             border-top: 1px solid #1e293b;
@@ -171,6 +168,7 @@
             color: white;
             margin-bottom: 10px;
             box-sizing: border-box;
+            font-size: 14px;
         }
 
         .confirm-btn {
@@ -182,6 +180,35 @@
             color: white;
             font-size: 16px;
             font-weight: 700;
+        }
+
+        /* Окно после заказа */
+        #successOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .success-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 30px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .success-card h2 { color: var(--accent-color); margin-top: 0; }
+        .success-card p { line-height: 1.5; color: var(--text-main); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -197,65 +224,69 @@
     </div>
 
     <div id="catalog">
-        <div class="category-nav" id="catNav">
-            </div>
+        <div class="category-nav" id="catNav"></div>
+        <div class="products-grid" id="productsGrid"></div>
+        <div style="height: 180px;"></div> 
+        <div class="order-footer">
+            <input type="text" id="contact" class="order-input" placeholder="Адрес или комментарий">
+            <button class="confirm-btn" onclick="sendOrder()">ОТПРАВИТЬ ЗАКАЗ</button>
+        </div>
+    </div>
 
-        <div class="products-grid" id="productsGrid">
-            </div>
-
-        <div style="height: 180px;"></div> <div class="order-footer">
-            <input type="text" id="contact" class="order-input" placeholder="+993... адрес или комментарий">
-            <button class="confirm-btn" onclick="sendOrder()">ОФОРМИТЬ В SMS</button>
+    <div id="successOverlay">
+        <div class="success-card">
+            <h2>Заказ отправлен!</h2>
+            <p>Ваша заявка передана оператору.<br><br><b>Ожидайте SMS:</b> мы пришлем итоговую стоимость и подтвердим доставку.</p>
+            <button class="confirm-btn" style="margin-top:20px" onclick="location.reload()">ОК</button>
         </div>
     </div>
 
 </div>
 
 <script>
-// БАЗА ДАННЫХ ТОВАРОВ
 const menuData = {
     "Алкоголь": [
-        {id: "v1", name: "Водка Arassa", price: "60 TMT"},
-        {id: "v2", name: "Водка Serdar", price: "120 TMT"},
-        {id: "w1", name: "Whisky Chivas 12y", price: "950 TMT"},
-        {id: "w2", name: "Jameson", price: "700 TMT"},
-        {id: "c1", name: "Коньяк Kopetdag", price: "150 TMT"},
-        {id: "t1", name: "Tequila Olmeca", price: "650 TMT"},
-        {id: "g1", name: "Gin Beefeater", price: "580 TMT"},
-        {id: "j1", name: "Jagermeister", price: "620 TMT"},
-        {id: "v3", name: "Grey Goose", price: "1100 TMT"},
-        {id: "r1", name: "Bacardi Carta", price: "550 TMT"}
+        {id: "v1", name: "Водка Arassa"},
+        {id: "v2", name: "Водка Serdar"},
+        {id: "w1", name: "Whisky Chivas 12y"},
+        {id: "w2", name: "Jameson"},
+        {id: "c1", name: "Коньяк Kopetdag"},
+        {id: "t1", name: "Tequila Olmeca"},
+        {id: "g1", name: "Gin Beefeater"},
+        {id: "j1", name: "Jagermeister"},
+        {id: "v3", name: "Grey Goose"},
+        {id: "r1", name: "Bacardi Carta"}
     ],
     "Закуски": [
-        {id: "s1", name: "Чипсы Lays", price: "25 TMT"},
-        {id: "s2", name: "Фисташки", price: "40 TMT"},
-        {id: "s3", name: "Курт местный", price: "15 TMT"},
-        {id: "s4", name: "Сухарики", price: "10 TMT"},
-        {id: "s5", name: "Кальмар кольца", price: "45 TMT"},
-        {id: "s6", name: "Арахис глазурь", price: "20 TMT"},
-        {id: "s7", name: "Рыбка янтарная", price: "35 TMT"},
-        {id: "s8", name: "Сыр Косичка", price: "30 TMT"},
-        {id: "s9", name: "Мясные чипсы", price: "55 TMT"},
-        {id: "s10", name: "Начос", price: "35 TMT"}
+        {id: "s1", name: "Чипсы Lays"},
+        {id: "s2", name: "Фисташки"},
+        {id: "s3", name: "Курт местный"},
+        {id: "s4", name: "Сухарики"},
+        {id: "s5", name: "Кальмар кольца"},
+        {id: "s6", name: "Арахис глазурь"},
+        {id: "s7", name: "Рыбка янтарная"},
+        {id: "s8", name: "Сыр Косичка"},
+        {id: "s9", name: "Мясные чипсы"},
+        {id: "s10", name: "Начос"}
     ],
     "Напитки": [
-        {id: "d1", name: "Coca-Cola 1.5", price: "20 TMT"},
-        {id: "d2", name: "Sprite 1.5", price: "20 TMT"},
-        {id: "d3", name: "Энергетик Bold", price: "12 TMT"},
-        {id: "d4", name: "Тоник Schweppes", price: "25 TMT"},
-        {id: "d5", name: "Сок Jos 1л", price: "18 TMT"},
-        {id: "d6", name: "Минералка Berzengi", price: "8 TMT"},
-        {id: "d7", name: "Fuse Tea", price: "15 TMT"},
-        {id: "d8", name: "Вода Hayat 1.5", price: "5 TMT"},
-        {id: "d9", name: "Lipton Ice", price: "15 TMT"},
-        {id: "d10", name: "Red Bull", price: "45 TMT"}
+        {id: "d1", name: "Coca-Cola 1.5"},
+        {id: "d2", name: "Sprite 1.5"},
+        {id: "d3", name: "Энергетик Bold"},
+        {id: "d4", name: "Тоник Schweppes"},
+        {id: "d5", name: "Сок Jos 1л"},
+        {id: "d6", name: "Минералка Berzengi"},
+        {id: "d7", name: "Fuse Tea"},
+        {id: "d8", name: "Вода Hayat 1.5"},
+        {id: "d9", name: "Lipton Ice"},
+        {id: "d10", name: "Red Bull"}
     ],
     "Разное": [
-        {id: "m1", name: "Лед (пакет 1кг)", price: "15 TMT"},
-        {id: "m2", name: "Стаканы 10шт", price: "10 TMT"},
-        {id: "m3", name: "Уголь 3кг", price: "60 TMT"},
-        {id: "m4", name: "Розжиг", price: "20 TMT"},
-        {id: "m5", name: "Штопор", price: "45 TMT"}
+        {id: "m1", name: "Лед (пакет 1кг)"},
+        {id: "m2", name: "Стаканы 10шт"},
+        {id: "m3", name: "Уголь 3кг"},
+        {id: "m4", name: "Розжиг"},
+        {id: "m5", name: "Штопор"}
     ]
 };
 
@@ -274,7 +305,7 @@ function renderCategories() {
         const btn = document.createElement("button");
         btn.className = `cat-btn ${index === 0 ? 'active' : ''}`;
         btn.innerText = cat;
-        btn.onclick = (e) => {
+        btn.onclick = () => {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             showCategory(cat);
@@ -294,18 +325,16 @@ function showCategory(catName) {
             <div class="card-image"></div>
             <div class="card-content">
                 <div class="name">${item.name}</div>
-                <div class="price">${item.price}</div>
                 <div class="quick-grid">
                     ${[1, 2, 3, 5, 10, 20].map(v => `
-                        <button id="btn_${item.id}_${v}" onclick="updateQty('${item.id}', '${item.name}', ${v})">${v}</button>
+                        <button id="btn_${item.id}_${v}" onclick="updateQty('${item.id}', '${item.name}', ${v}, this)">${v}</button>
                     `).join('')}
-                    <button onclick="updateQty('${item.id}', '${item.name}', 0)">0</button>
+                    <button onclick="updateQty('${item.id}', '${item.name}', 0, this)">0</button>
                 </div>
             </div>
         `;
         grid.appendChild(card);
         
-        // Подсветка активной кнопки, если уже выбрано
         if(currentOrder[item.id]) {
             setTimeout(() => {
                 const activeBtn = document.getElementById(`btn_${item.id}_${currentOrder[item.id].qty}`);
@@ -315,17 +344,16 @@ function showCategory(catName) {
     });
 }
 
-function updateQty(id, name, qty) {
+function updateQty(id, name, qty, btn) {
     if (qty === 0) {
         delete currentOrder[id];
     } else {
         currentOrder[id] = { name, qty };
     }
     
-    // Перерисовываем кнопки в текущем блоке для фидбека
-    const parentGrid = event.target.parentElement;
+    const parentGrid = btn.parentElement;
     parentGrid.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-    if (qty > 0) event.target.classList.add('active');
+    if (qty > 0) btn.classList.add('active');
 }
 
 function sendOrder() {
@@ -342,7 +370,13 @@ function sendOrder() {
     let contact = document.getElementById("contact").value;
     text += `\n📞 Контакт: ${contact}`;
     
+    // Открываем SMS
     window.location.href = `sms:99365858463?body=${encodeURIComponent(text)}`;
+
+    // Показываем окно об успехе через небольшую паузу
+    setTimeout(() => {
+        document.getElementById("successOverlay").style.display = "flex";
+    }, 1000);
 }
 </script>
 
